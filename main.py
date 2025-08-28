@@ -1,21 +1,10 @@
 import logging
+import os
 import random
 import string
-from datetime import datetime
-import os
 from flask import Flask, request
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, ContextTypes, filters
-from routeros_api import RouterOsApiPool
-
-# إعدادات MikroTik
-MIKROTIK_IP = '192.168.1.11'
-MIKROTIK_USER = 'admin'
-MIKROTIK_PASSWORD = '3071985'
-API_PORT = 8728
-
-# إعدادات البوت
-TOKEN = "6725359383:AAGgYzqpuq7-b7Miv-_Y4NZgkhhoybBJJWM"
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -23,37 +12,20 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+TOKEN = "PUT_YOUR_TELEGRAM_TOKEN_HERE"  # ضع التوكن هنا
 flask_app = Flask(__name__)
 
+# توليد اسم مستخدم عشوائي
 def generate_username(length=8):
     return ''.join(random.choices(string.digits, k=length))
 
+# Dummy function لإنشاء مستخدم MikroTik (تجربة أولية)
 def create_mikrotik_user(username, data_limit, time_limit):
-    try:
-        connection = RouterOsApiPool(
-            host=MIKROTIK_IP,
-            username=MIKROTIK_USER,
-            password=MIKROTIK_PASSWORD,
-            port=API_PORT,
-            plaintext_login=True
-        )
-        api = connection.get_api()
-        profile = "3M"
-        creation_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # صححنا هنا
+    # بدل actual MikroTik API مؤقتًا لتجربة البوت
+    logger.info(f"Creating user {username} with {data_limit} bytes and {time_limit}")
+    return True
 
-        api.get_resource('/ip/hotspot/user').add(
-            name=username,
-            profile=profile,
-            limit_bytes_total=str(data_limit),
-            limit_uptime=str(time_limit),
-            comment=f"autoRemove start: {creation_time}"
-        )
-        connection.disconnect()
-        return True
-    except Exception as e:
-        logger.error(f"❌ خطأ: {e}")
-        return False
-
+# Handlers
 async def new_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton("💰 5 جنيه - 500MB / ساعتين", callback_data="plan_5")],
@@ -73,7 +45,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         time_limit = "2h"
     elif data == "plan_10":
         data_limit = 1300 * 1024 * 1024
-        time_limit = "1d"
+        time_limit = "24h"
     else:
         data_limit = None
 
@@ -86,15 +58,15 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.message.reply_text(response)
 
 async def manual_entry_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("⚠️ تخصيص الباقة لسه تحت التطوير.")
+    await update.message.reply_text("⚠️ تخصيص الباقة تحت التطوير.")
 
-# Telegram
+# Telegram Application
 application = Application.builder().token(TOKEN).build()
 application.add_handler(CommandHandler("newuser", new_user))
 application.add_handler(CallbackQueryHandler(button_handler))
 application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, manual_entry_handler))
 
-# Flask routes
+# Flask Routes
 @flask_app.route(f"/{TOKEN}", methods=["POST"])
 def webhook():
     update = Update.de_json(request.get_json(force=True), application.bot)

@@ -40,3 +40,7 @@ def create_mikrotik_user(username, data_limit, time_limit):
         api = connection.get_api()
         profile = "3M"
         creation_time = datetime.now().strf_
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8080))  # Cloud Run بيوفر PORT هنا
+    flask_app.run(host="0.0.0.0", port=port)
+    

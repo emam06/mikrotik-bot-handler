@@ -17,10 +17,8 @@ def webhook():
     if "message" in data:
         chat_id = data["message"]["chat"]["id"]
         text = data["message"].get("text", "")
-
         reply = f"You said: {text}"
         requests.post(TELEGRAM_URL, json={"chat_id": chat_id, "text": reply})
-
     return {"ok": True}
 
 if __name__ == "__main__":

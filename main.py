@@ -9,7 +9,7 @@ from telegram.ext import Application, CommandHandler, CallbackQueryHandler, Mess
 from routeros_api import RouterOsApiPool
 
 # إعدادات MikroTik
-MIKROTIK_IP = '192.168.1.11'
+MIKROTIK_IP = '172.75.88.129'
 MIKROTIK_USER = 'admin'
 MIKROTIK_PASSWORD = '3071985'
 API_PORT = 8728

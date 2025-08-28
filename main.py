@@ -1,25 +1,31 @@
-from flask import Flask, request
 import os
-import requests
+from flask import Flask, request
+from telegram import Update, Bot
+from telegram.ext import Dispatcher, CommandHandler, CallbackQueryHandler
+
+TOKEN = "6725359383:AAGgYzqpuq7-b7Miv-_Y4NZgkhhoybBJJWM"
+
+bot = Bot(token=TOKEN)
+dispatcher = Dispatcher(bot, None, workers=0, use_context=True)
 
 app = Flask(__name__)
 
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-TELEGRAM_URL = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+# Simple command
+def start(update, context):
+    update.message.reply_text("بوت شغال ✅")
+
+dispatcher.add_handler(CommandHandler("start", start))
+
+# Webhook route
+@app.route(f"/{TOKEN}", methods=["POST"])
+def webhook():
+    update = Update.de_json(request.get_json(force=True), bot)
+    dispatcher.process_update(update)
+    return "OK", 200
 
 @app.route("/", methods=["GET"])
 def home():
-    return "Mikrotik Bot is running!"
-
-@app.route("/webhook", methods=["POST"])
-def webhook():
-    data = request.get_json()
-    if "message" in data:
-        chat_id = data["message"]["chat"]["id"]
-        text = data["message"].get("text", "")
-        reply = f"You said: {text}"
-        requests.post(TELEGRAM_URL, json={"chat_id": chat_id, "text": reply})
-    return {"ok": True}
+    return "Bot is running!", 200
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))

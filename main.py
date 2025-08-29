@@ -1,4 +1,3 @@
-from flask import Flask, request
 import logging
 import random
 import string
@@ -221,6 +220,7 @@ def main():
 
 
 if __name__ == "__main__":
+    main()
     main()
 
     # تشغيل Flask على PORT المتاح
